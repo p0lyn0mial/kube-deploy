@@ -1,4 +1,5 @@
 all:
+	cd cmd/machineset-controller && go build
 	cd tools/upgrader && go build
 	cd tools/repair && go build
 	cd tools/machineset && go build

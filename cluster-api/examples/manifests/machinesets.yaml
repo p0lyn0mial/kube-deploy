@@ -1,0 +1,31 @@
+apiVersion: "cluster.k8s.io/v1alpha1"
+kind: MachineSet
+metadata:
+  name: my-first-machineset
+spec:
+  replicas: 3
+  template:
+    spec:
+      providerConfig: |
+        sshPublicKeys:
+          - "<<PUBLIC_KEY>>"
+        cloudProvider: "digitalocean"
+        cloudProviderSpec:
+          token: "<<DO_TOKEN>>"
+          region: "fra1"
+          size: "512mb"
+          backups: false
+          ipv6: false
+          private_networking: true
+          monitoring: false
+          tags:
+            - "a-tag"
+        operatingSystem: "ubuntu"
+        operatingSystemSpec:
+          distUpgradeOnBoot: false
+      roles:
+      - "Node"
+      versions:
+        kubelet: "1.9.2"
+        containerRuntime:
+          name: "docker"
