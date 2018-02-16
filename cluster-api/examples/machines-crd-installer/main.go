@@ -40,6 +40,13 @@ func main() {
 		panic(err.Error())
 	}
 
+	_, err = clusterv1.CreateMachineSetsCRD(cs)
+	if err != nil {
+		fmt.Printf("Error creating MachineSets CRD: %v\n", err)
+	} else {
+		fmt.Printf("MachineSET CRD created successfully!\n")
+	}
+
 	_, err = clusterv1.CreateMachinesCRD(cs)
 	if err != nil {
 		fmt.Printf("Error creating Machines CRD: %v\n", err)

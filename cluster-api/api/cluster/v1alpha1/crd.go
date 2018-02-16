@@ -37,6 +37,8 @@ const (
 	ClustersCRDName   = ClustersCRDPlural + "." + CRDGroup
 	MachinesCRDPlural = "machines"
 	MachinesCRDName   = MachinesCRDPlural + "." + CRDGroup
+	MachineSetsCRDPlural = "machinesets"
+	MachineSetsCRDName   = MachineSetsCRDPlural + "." + CRDGroup
 )
 
 var SchemeGroupVersion = schema.GroupVersion{Group: CRDGroup, Version: CRDVersion}
@@ -53,6 +55,24 @@ func CreateClustersCRD(clientset apiextensionsclient.Interface) (*extensionsv1.C
 			Names: extensionsv1.CustomResourceDefinitionNames{
 				Plural: ClustersCRDPlural,
 				Kind:   reflect.TypeOf(Cluster{}).Name(),
+			},
+		},
+	}
+	return crd, createCRD(clientset, crd)
+}
+
+func CreateMachineSetsCRD(clientset apiextensionsclient.Interface) (*extensionsv1.CustomResourceDefinition, error) {
+	crd := &extensionsv1.CustomResourceDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: MachineSetsCRDName,
+		},
+		Spec: extensionsv1.CustomResourceDefinitionSpec{
+			Group:   SchemeGroupVersion.Group,
+			Version: SchemeGroupVersion.Version,
+			Scope:   extensionsv1.ClusterScoped,
+			Names: extensionsv1.CustomResourceDefinitionNames{
+				Plural: MachineSetsCRDPlural,
+				Kind:   reflect.TypeOf(MachineSet{}).Name(),
 			},
 		},
 	}
