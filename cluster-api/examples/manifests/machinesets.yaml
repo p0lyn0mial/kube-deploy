@@ -5,6 +5,8 @@ metadata:
 spec:
   replicas: 3
   template:
+    metadata:
+     generateName: my-first-machineset-
     spec:
       providerConfig: >
         {

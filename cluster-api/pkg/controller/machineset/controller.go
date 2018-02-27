@@ -23,7 +23,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
@@ -145,7 +144,7 @@ func (c *Controller) syncReplicas(machineSet *v1alpha1.MachineSet, machines []*v
 	currentMachineCount := int32(len(machines))
 	desiredReplicas := int32(0)
 	if machineSet.Spec.Replicas != nil {
-	 desiredReplicas = *machineSet.Spec.Replicas
+		desiredReplicas = *machineSet.Spec.Replicas
 	}
 
 	if desiredReplicas > currentMachineCount {
@@ -158,9 +157,6 @@ func (c *Controller) syncReplicas(machineSet *v1alpha1.MachineSet, machines []*v
 		if err != nil {
 			return err
 		}
-		if err = waitForMachineInCache(machine.Name, c.machineLister); err != nil {
-			return err
-		}
 		return nil
 	}
 
@@ -171,9 +167,6 @@ func (c *Controller) syncReplicas(machineSet *v1alpha1.MachineSet, machines []*v
 		if err != nil {
 			return err
 		}
-		if err = waitForMachineDeletedInCache(machineToDelete, c.machineLister); err != nil {
-			return err
-		}
 		return nil
 	}
 
@@ -181,19 +174,19 @@ func (c *Controller) syncReplicas(machineSet *v1alpha1.MachineSet, machines []*v
 }
 
 // createMachine creates a machine resource.
-// the name of the newly created resource is created as machineSet.Name + some random characters.
+// the name of the newly created resource is going to be created by the API server, we set the generateName field
 // in addition, the newly created resource is owned by the given machineSet (we set the OwnerReferences field)
 func (c *Controller) createMachine(machineSet *clusterv1alpha1.MachineSet) (*clusterv1alpha1.Machine, error) {
-	machineName := machineSet.Name + "-" + string(uuid.NewUUID())[:6]
-
 	gv := clusterv1alpha1.SchemeGroupVersion
 	machine := &clusterv1alpha1.Machine{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:            machineName,
-			OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(machineSet, gv.WithKind("MachineSet"))},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       gv.WithKind("Machine").Kind,
+			APIVersion: gv.String(),
 		},
-		Spec: machineSet.Spec.Template.Spec,
+		ObjectMeta: machineSet.Spec.Template.ObjectMeta,
+		Spec:       machineSet.Spec.Template.Spec,
 	}
+	machine.ObjectMeta.OwnerReferences = append(machine.ObjectMeta.OwnerReferences, *metav1.NewControllerRef(machineSet, gv.WithKind("MachineSet")))
 
 	return machine, nil
 }
